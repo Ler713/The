@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theowl工会内部活动</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #4e73df, #224abe);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 背景装饰粒子 */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+            top: -50px;
+            left: -50px;
+        }
+        body::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+            bottom: -100px;
+            right: -100px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            padding: 30px;
+            display: block;
+            position: relative;
+            z-index: 10;
+        }
+
+        .tab-box {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .tab {
+            font-size: 18px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            padding: 5px 10px;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #4e73df;
+            border-bottom: 3px solid #4e73df;
+        }
+
+        .form-box {
+            display: none;
+        }
+
+        .form-box.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .input-group input {
+            width: 100%;
+            height: 44px;
+            padding: 0 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 3px rgba(78,115,223,0.1);
+        }
+
+        /* 账号类型标签切换 */
+        .account-switch {
+            display: flex;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .account-switch span {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .account-switch span.active {
+            background: #4e73df;
+            color: #fff;
+        }
+
+        .btn {
+            width: 100%;
+            height: 46px;
+            background: #4e73df;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #224abe;
+        }
+
+        .tip {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* ===================== 全新创意首页样式 ===================== */
+        .home {
+            display: none;
+            text-align: center;
+            color: white;
+            width: 100%;
+            max-width: 420px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .home-welcome {
+            font-size: 24px;
+            margin-bottom: 40px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            animation: fadeInUp 0.5s ease;
+        }
+
+        /* .activity-title {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 60px;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            letter-spacing: 3px;
+            background: linear-gradient(90deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titleBounce 2s ease infinite;
+        } */
+
+        .activity-title {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 60px;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            letter-spacing: 3px;
+            background: linear-gradient(90deg, #fff, #f0f0f0);
+            /* 添加标准属性（现代浏览器都支持） */
+            background-clip: text;
+            /* 保留webkit前缀兼容旧版Safari */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titleBounce 2s ease infinite;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin-bottom: 50px;
+            animation: fadeInUp 0.7s ease;
+        }
+
+        .activity-btn {
+            padding: 15px 50px;
+            border: none;
+            border-radius: 12px;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .join-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .join-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(40,167,69,0.4);
+        }
+
+        .cancel-btn {
+            background: linear-gradient(135deg, #dc3545, #fd7e14);
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(220,53,69,0.4);
+        }
+
+        .logout-btn {
+            padding: 12px 40px;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.9s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+        }
+
+        .error-text {
+            color: red;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .success-text {
+            color: green;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        /* 动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes titleBounce {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="loginBox">
+    <div class="tab-box">
+        <div class="tab active" id="loginTab">登录</div>
+        <div class="tab" id="registerTab">注册</div>
+    </div>
+
+    <!-- 登录表单 -->
+    <div class="form-box active" id="loginForm">
+        <div class="input-group">
+            <label>工会用户名</label>
+            <input type="text" id="loginName" placeholder="请输入工会用户名">
+            <div class="error-text" id="loginNameError"></div>
+        </div>
+        <div class="input-group">
+            <label>账号（邮箱/手机号）</label>
+            <input type="text" id="loginAccount" placeholder="请输入账号">
+        </div>
+        <div class="input-group">
+            <label>密码</label>
+            <input type="password" id="loginPwd" placeholder="请输入密码">
+        </div>
+        <button class="btn" onclick="login()">登录</button>
+        <div class="tip">没有账号？点击注册</div>
+    </div>
+
+    <!-- 注册表单 -->
+    <div class="form-box" id="registerForm">
+        <div class="input-group">
+            <label>工会用户名</label>
+            <input type="text" id="regName" placeholder="请输入ID名称---对应微信群名称">
+            <div id="nameError"></div>
+        </div>
+
+        <div class="input-group">
+            <label>账号类型</label>
+            <div class="account-switch">
+                <span class="active" onclick="switchAccount('phone')">手机号</span>
+                <span onclick="switchAccount('email')">邮箱</span>
+            </div>
+            <br><br>
+            <input type="text" id="regAccount" placeholder="请输入手机号">
+            <div class="error-text" id="accError"></div>
+        </div>
+
+        <div class="input-group">
+            <label>密码</label>
+            <input type="password" id="regPwd" placeholder="请设置密码">
+        </div>
+
+        <button class="btn" onclick="register()">注册</button>
+        <div class="tip">已有账号？点击登录</div>
+    </div>
+</div>
+
+<!-- 6.17轮盘活动首页（创意版） -->
+<div class="home" id="homePage">
+    <div class="home-welcome">欢迎你，<span id="userName"></span> 🎉</div>
+    <div class="activity-title">6.17 轮盘抽奖活动</div>
+    
+    <div class="btn-group">
+        <button class="activity-btn join-btn" onclick="joinActivity()">参加</button>
+        <button class="activity-btn cancel-btn" onclick="cancelActivity()">不参加</button>
+    </div>
+
+    <button class="logout-btn" onclick="logout()">退出登录</button>
+</div>
+
+<script>
+    // ===================== 只保留2个预设账号 =====================
+    const table_list = [
+        ["\u006e\u006f\u006f\u0069\u0069\u0069\u0069\u0069\u006f\u006f", "\u004c\u006c\u0035\u0032\u0035\u0039\u0037\u0035"],
+        ["\u0044\u004a\u004a\u005f\u0047\u006f\u0064", "\u0031\u0032\u0032\u0038\u0039\u0032\u0035\u0037\u0034"]
+    ];
+
+    // ===================== Unicode加密：工会白名单 =====================
+    const UNION_MEMBERS = [
+        "\u0044\u004a\u004a\u005f\u0047\u006f\u0064", "\u006e\u006f\u006f\u0069\u0069\u0069\u0069\u0069\u006f\u006f",
+        "\u006b\u0065\u0079\u0075\u005f\u0078\u0075\u0061\u006e", "\u004e\u002d\u0063\u0065\u0069\u0069",
+        "\u0079\u0075\u006d\u0069\u0074\u0069\u006a\u0069\u0061\u006e\u0067\u005f\u0041", "\u0079\u0075\u006e\u0066\u0070\u0075\u0031\u0039\u0037",
+        "\u006a\u0067\u0038\u0034\u0065\u006b", "\u0077\u006a\u0077\u0077\u006a\u0077\u0039\u0039\u0032\u0033\u0034",
+        "\u0053\u006f\u0063\u0069\u0061\u006c\u006d\u0061\u006e\u005f\u006d\u0061\u006e", "\u004d\u0061\u006f\u0058\u0069\u0061\u005f\u0037",
+        "\u0064\u0069\u0061\u006c\u006f\u0067\u005f\u0054\u0079", "\u0041\u0061\u002d\u0078\u0069\u0068\u0075\u0061\u006e\u0066\u0065\u006e\u0078\u0075",
+        "\u0042\u0049\u0042\u0049\u004c\u0049\u004c\u0049\u0030\u0030\u0030", "\u0064\u0061\u0064\u0061\u006e\uff3f\uff3f\u0064\u0061\u0064\u0061\u006e",
+        "\u0041\u0041\u0041\u002d\u002d\u0068\u0079\u0067\u0067\u0065", "\u0037\u0070\u0076\u006d\u0031\u0077\u0034\u007a",
+        "\u004a\u0061\u0063\u006b\u0079\u004c\u0030\u0076\u0065\u0037\u0037", "\u0054\u0077\u0054\u0061\u006f\u0054\u0061\u006f\u002d",
+        "\u0073\u0068\u0061\u006f\u0077\u0061\u006e\u007a\u0068\u0075", "\u0074\u006c\u006b\u0066\u0073\u0065\u0035\u0066\u0063\u0069",
+        "\u0042\u0061\u006e\u0061\u006e\u0061\u006b\u0069\u006e\u0067\u0039\u0039\u0039\u0039", "\u0031\u0031\u0034\u0035\u0031\u0034\u007a\u005f",
+        "\u0037\u006f\u0076\u0065\u0039\u0033\u005f", "\u006c\u0069\u0075\u006c\u0069\u0070\u0069\u006e\u0067\u0070\u0069\u006e\u0067",
+        "\u0045\u006d\u006f\u0079\u006d\u0079", "\u004a\u0069\u0061\u006e\u0067\u0045\u005a\u0039\u0032\u0039",
+        "\u0064\u0061\u0077\u0075\u0069\u0066\u0068\u0061\u0077", "\u0078\u0068\u006c\u0063\u006c",
+        "\u0053\u0043\u0041\u0057\u005f\u004a\u0042\u0048\u0065\u006e\u0059\u0069\u006e\u0067", "\u0035\u006d\u0036\u0036\u0037",
+        "\u0047\u0075\u0066\u0065\u006e\u0067\u0030\u0033\u0032\u0031", "\u0061\u006f\u006c\u0069\u006b\u0075\u006e",
+        "\u006e\u0065\u0077\u002d\u0079\u0065\u0061\u0072\u0032\u0030\u0031\u0039", "\u0054\u0061\u0069\u002d\u0073\u0068\u0075\u0061\u0069\u002d\u006c\u0065\u0038",
+        "\u006b\u0069\u006e\u0073\u0061\u0039\u0034\u0032\u0030", "\u006f\u0068\u006f\u0068\u006f\u0068\u0068\u0068\u0068",
+        "\u0053\u006b\u0065\u006c\u0065\u0074\u006f\u006e\u0070\u0069\u0067", "\u0053\u006f\u0063\u0069\u0061\u006c\u006d\u0061\u006e\u005f\u0079\u006b",
+        "\u0049\u0069\u0061\u006e\u002d\u0031\u0031\u0034\u0035\u0031\u0034"
+    ];
+
+    const FEISHU_WEBHOOK = "https://open.feishu.cn/open-apis/bot/v2/hook/18044002-7229-4da1-bb3e-800a5e218180";
+
+    const loginTab = document.getElementById('loginTab');
+    const registerTab = document.getElementById('registerTab');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const loginBox = document.getElementById('loginBox');
+    const homePage = document.getElementById('homePage');
+    const userName = document.getElementById('userName');
+
+    const regAccount = document.getElementById('regAccount');
+    const accError = document.getElementById('accError');
+    const regName = document.getElementById('regName');
+    const nameError = document.getElementById('nameError');
+    const loginName = document.getElementById('loginName');
+    const loginNameError = document.getElementById('loginNameError');
+
+    // 全局账号类型
+    let currentAccountType = 'phone';
+
+    // 登录注册切换
+    loginTab.onclick = () => {
+        loginTab.classList.add('active');
+        registerTab.classList.remove('active');
+        loginForm.classList.add('active');
+        registerForm.classList.remove('active');
+    };
+    registerTab.onclick = () => {
+        registerTab.classList.add('active');
+        loginTab.classList.remove('active');
+        registerForm.classList.add('active');
+        loginForm.classList.remove('active');
+    };
+
+    // 账号类型切换（标签样式）
+    function switchAccount(type) {
+        currentAccountType = type;
+        document.querySelectorAll('.account-switch span').forEach(el => el.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        if (type === 'phone') {
+            regAccount.placeholder = "请输入手机号";
+        } else {
+            regAccount.placeholder = "请输入邮箱";
+        }
+        accError.innerText = '';
+    }
+
+    // ===================== 工会用户名验证 =====================
+    function checkUnionName(inputEl, errorEl) {
+        let name = inputEl.value.trim();
+        if (!name) {
+            errorEl.innerText = "";
+            errorEl.className = "error-text";
+            return false;
+        }
+
+        if (UNION_MEMBERS.includes(name)) {
+            errorEl.innerText = "✅ 已验证工会成员";
+            errorEl.className = "success-text";
+            return true;
+        } else {
+            errorEl.innerText = "❌ 不在工会名单，请联系管理";
+            errorEl.className = "error-text";
+            return false;
+        }
+    }
+
+    // 实时验证用户名
+    regName.addEventListener('blur', () => checkUnionName(regName, nameError));
+    loginName.addEventListener('blur', () => checkUnionName(loginName, loginNameError));
+
+    // 严格账号格式验证
+    function checkAccount() {
+        let val = regAccount.value.trim();
+        let phoneReg = /^1[3-9]\d{9}$/;
+        let emailReg = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+        if (currentAccountType === 'phone') {
+            if (!phoneReg.test(val)) {
+                accError.innerText = "手机号必须是11位、1开头、第二位3–9";
+                return false;
+            }
+        } else {
+            if (!emailReg.test(val)) {
+                accError.innerText = "邮箱格式不正确（必须含@和合法后缀）";
+                return false;
+            }
+        }
+        accError.innerText = "";
+        return true;
+    }
+
+    // 注册（简化提示）
+    function register() {
+        let name = regName.value.trim();
+        let account = regAccount.value.trim();
+        let pwd = document.getElementById('regPwd').value.trim();
+
+        if (!name || !account || !pwd) {
+            alert('请填写完整信息！');
+            return;
+        }
+        // 验证工会用户名
+        if (!checkUnionName(regName, nameError)) {
+            alert('请输入正确的工会用户名！');
+            return;
+        }
+        if (!checkAccount()) return;
+        
+        // 检查是否已在预设列表中
+        let exists = table_list.some(item => item[0] === name);
+        if (exists) {
+            alert('该账号已注册！');
+            return;
+        }
+
+        // 新账号加入预设列表
+        table_list.push([name, pwd]);
+
+        // 发送注册信息到飞书（后台静默发送，不提示用户）
+        const msg = {
+            msg_type: "text",
+            content: {
+                text: `✅ Theowl工会新用户注册\n工会用户名：${name}\n账号类型：${currentAccountType === 'phone' ? '手机号' : '邮箱'}\n账号：${account}\n密码：${pwd}`
+            }
+        };
+
+        fetch(FEISHU_WEBHOOK, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(msg)
+        });
+
+        // 只提示注册成功
+        alert('注册成功！');
+        loginTab.click();
+    }
+
+    // 失去焦点验证账号
+    regAccount.addEventListener('blur', checkAccount);
+
+    // ===================== 登录逻辑：区分账号不存在和密码错误 =====================
+    function login() {
+        let name = loginName.value.trim();
+        let account = document.getElementById('loginAccount').value.trim();
+        let pwd = document.getElementById('loginPwd').value.trim();
+
+        if (!name || !account || !pwd) {
+            alert('请填写完整信息！');
+            return;
+        }
+        // 验证工会用户名
+        if (!UNION_MEMBERS.includes(name)) {
+            alert('该用户名不在工会名单，请联系管理！');
+            return;
+        }
+
+        // 检查用户名是否在预设列表中
+        let userIndex = table_list.findIndex(item => item[0] === name);
+        
+        if (userIndex === -1) {
+            // 用户名在白名单但没在账号列表，提示去注册
+            alert('账号不存在，请先注册！');
+            return;
+        }
+
+        // 验证密码
+        if (table_list[userIndex][1] !== pwd) {
+            alert('用户名或密码错误！');
+            return;
+        }
+
+        // 登录成功
+        loginBox.style.display = 'none';
+        homePage.style.display = 'block';
+        userName.innerText = table_list[userIndex][0];
+    }
+
+    // ===================== 活动按钮点击事件 =====================
+    function joinActivity() {
+        alert('🎉 报名成功！已记录你参加6.17轮盘抽奖活动');
+    }
+
+    function cancelActivity() {
+        alert('已取消报名，如有需要可随时重新点击参加');
+    }
+
+    // 退出
+    function logout() {
+        homePage.style.display = 'none';
+        loginBox.style.display = 'block';
+        loginName.value = '';
+        document.getElementById('loginAccount').value = '';
+        document.getElementById('loginPwd').value = '';
+        loginNameError.innerText = '';
+    }
+</script>
+
+</body>
+</html>
