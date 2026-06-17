@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6.19幸运大转盘</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            color: #fff;
+            padding: 20px;
+        }
+
+        .title {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            letter-spacing: 4px;
+        }
+
+        .count-tip {
+            font-size: 20px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        /* 转盘容器 */
+        .clock-wheel-wrap {
+            position: relative;
+            width: 380px;
+            height: 380px;
+            margin-bottom: 30px;
+        }
+
+        /* 可旋转转盘主体 */
+        .clock-wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 8px solid #fff;
+            box-shadow: 0 0 0 6px rgba(255,255,255,0.2), 0 0 35px rgba(0,0,0,0.25);
+            position: relative;
+            overflow: hidden;
+            transform: rotate(0deg);
+            transform-origin: center center;
+            /* 6分区配色 顺时针：通行证、谢谢参与、G币、谢谢参与、随机宝箱、谢谢参与 */
+            background: conic-gradient(
+                #ff4757 0deg 60deg,
+                #747d8c 60deg 120deg,
+                #3742fa 120deg 180deg,
+                #747d8c 180deg 240deg,
+                #ffa502 240deg 300deg,
+                #747d8c 300deg 360deg
+            );
+        }
+
+        /* 转盘内部文字层，跟随转盘同步旋转 */
+        .wheel-text-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        /* 单个文字项，沿圆周均匀分布 */
+        .wheel-text-item {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 80px;
+            margin-left: -40px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+            /* 旋转原点设为转盘中心，半径190px */
+            transform-origin: center 190px;
+            padding-top: 20px;
+        }
+
+        /* 6个扇区文字，对应扇区中心角度 */
+        .item-0 { transform: rotate(30deg); }   /* 通行证 中心30度 */
+        .item-1 { transform: rotate(90deg); }   /* 谢谢参与 中心90度 */
+        .item-2 { transform: rotate(150deg); }  /* G币 中心150度 */
+        .item-3 { transform: rotate(210deg); }  /* 谢谢参与 中心210度 */
+        .item-4 { transform: rotate(270deg); }  /* 随机宝箱 中心270度 */
+        .item-5 { transform: rotate(330deg); }  /* 谢谢参与 中心330度 */
+
+        /* 顶部固定指针 */
+        .pointer {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+        }
+        .pointer-tri {
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid #ff3838;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        .pointer-dot {
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border-radius: 50%;
+            margin: -10px auto 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* 中心抽奖按钮 */
+        .start-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%);
+            color: #fff;
+            border: 5px solid #fff;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(255,71,87,0.5);
+            transition: all 0.3s ease;
+        }
+        .start-btn:hover:not(:disabled) {
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow: 0 6px 20px rgba(255,71,87,0.6);
+        }
+        .start-btn:active:not(:disabled) {
+            transform: translate(-50%, -50%) scale(0.98);
+        }
+        .start-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: linear-gradient(135deg, #a4b0be 0%, #747d8c 100%);
+        }
+
+        /* 我的奖品按钮 */
+        .func-btns {
+            margin-bottom: 25px;
+            display: none;
+        }
+        .func-btn {
+            padding: 14px 40px;
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 500;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .func-btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+        }
+
+        .back-btn {
+            padding: 12px 50px;
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .back-btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+        }
+
+        /* 弹窗通用样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: #fff;
+            color: #333;
+            padding: 35px 45px;
+            border-radius: 16px;
+            min-width: 350px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: popIn 0.3s ease;
+            text-align: center;
+        }
+        .modal-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #224abe;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        /* 领取按钮 */
+        .claim-btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            background: linear-gradient(90deg, #ffaa00 0%, #ff6600 100%);
+            box-shadow: 0 4px 15px rgba(255,136,0,0.4);
+            transition: all 0.3s ease;
+        }
+        .claim-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,136,0,0.5);
+        }
+        .claim-btn:disabled {
+            opacity: 0.8;
+            cursor: default;
+        }
+
+        .code-box {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px dashed #ffb347;
+        }
+        .code-label {
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .code-value {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ff6600;
+            letter-spacing: 2px;
+            user-select: all;
+            white-space: pre-line;
+        }
+
+        /* 记录列表 */
+        .record-list {
+            list-style: none;
+            text-align: left;
+        }
+        .record-item {
+            padding: 15px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        .record-item:last-child {
+            border-bottom: none;
+        }
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .record-prize {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .record-win { color: #ff4757; }
+        .record-lose { color: #999; font-weight: normal; }
+        .record-time {
+            color: #999;
+            font-size: 12px;
+        }
+        .record-code {
+            font-size: 14px;
+            color: #ff6600;
+            background: #fff5e6;
+            padding: 5px 10px;
+            border-radius: 6px;
+            display: inline-block;
+            white-space: pre-line;
+        }
+        .empty-tip {
+            text-align: center;
+            color: #999;
+            padding: 40px 0;
+            font-size: 14px;
+        }
+
+        .close-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background: #f0f2f5;
+            color: #666;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .close-btn:hover {
+            background: #e4e7ed;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">🎉 6.19 幸运大转盘</h1>
+    <div class="count-tip" id="countTip">已抽奖：0 次 / 共 3 次</div>
+
+    <div class="clock-wheel-wrap">
+        <!-- 固定指针 -->
+        <div class="pointer">
+            <div class="pointer-tri"></div>
+            <div class="pointer-dot"></div>
+        </div>
+        <!-- 可旋转转盘（含文字层同步转动） -->
+        <div class="clock-wheel" id="wheel">
+            <div class="wheel-text-layer">
+                <div class="wheel-text-item item-0">通行证</div>
+                <div class="wheel-text-item item-1">谢谢参与</div>
+                <div class="wheel-text-item item-2">G币</div>
+                <div class="wheel-text-item item-3">谢谢参与</div>
+                <div class="wheel-text-item item-4">随机宝箱</div>
+                <div class="wheel-text-item item-5">谢谢参与</div>
+            </div>
+        </div>
+        <!-- 中心抽奖按钮（固定不转） -->
+        <button class="start-btn" id="startBtn" onclick="startLottery()">抽奖</button>
+    </div>
+
+    <!-- 我的奖品按钮 -->
+    <div class="func-btns" id="recordBtnWrap">
+        <button class="func-btn" onclick="showRecordList()">📋 我的奖品</button>
+    </div>
+
+    <button class="back-btn" onclick="location.href='index.html'">返回首页</button>
+
+    <!-- 抽奖结果弹窗 -->
+    <div class="modal" id="resultModal">
+        <div class="modal-content">
+            <h2 id="resultTitle" style="margin-bottom: 10px; color: #333;"></h2>
+            <p id="resultDesc" style="color: #666; font-size:14px;"></p>
+            <div class="code-box" id="codeBox">
+                <div class="code-label">🎁 奖品兑换码</div>
+                <div class="code-value" id="codeValue"></div>
+            </div>
+            <button class="claim-btn" id="claimBtn" onclick="claimPrize()">奖品领取</button>
+        </div>
+    </div>
+
+    <!-- 我的奖品弹窗 -->
+    <div class="modal" id="recordModal">
+        <div class="modal-content">
+            <div class="modal-title">📋 我的抽奖记录</div>
+            <ul class="record-list" id="recordList"></ul>
+            <button class="close-btn" onclick="closeModal('recordModal')">关闭</button>
+        </div>
+    </div>
+
+    <script src="./userData.js"></script>
+    <script>
+        const loginUser = localStorage.getItem('loginUser');
+        if (!loginUser) {
+            alert('请先登录再参与抽奖！');
+            location.href = 'index.html';
+        }
+
+        const MAX_DRAW_COUNT = 3;
+        const wheel = document.getElementById('wheel');
+        const startBtn = document.getElementById('startBtn');
+        const countTip = document.getElementById('countTip');
+        const recordBtnWrap = document.getElementById('recordBtnWrap');
+        let isRunning = false;
+        let currentPrize = null;
+        let totalRotateAngle = 0; // 转盘累计旋转总角度
+
+        // 奖品名称 → 扇区索引映射
+        const prizeIndexMap = {
+            '通行证': 0,
+            'G币': 2,
+            '随机宝箱': 4
+        };
+
+        // 读取本地存储的抽奖次数
+        let drawCount = parseInt(localStorage.getItem(`drawCount_${loginUser}`) || '0');
+        if (drawCount >= MAX_DRAW_COUNT) {
+            startBtn.disabled = true;
+            startBtn.innerText = '已用完';
+            recordBtnWrap.style.display = 'block';
+        }
+        updateCountTip();
+
+        // 核心抽奖逻辑
+        function startLottery() {
+            if (drawCount >= MAX_DRAW_COUNT) {
+                alert('抽奖次数已用完！');
+                return;
+            }
+            if (isRunning) return;
+
+            isRunning = true;
+            startBtn.disabled = true;
+
+            drawCount++;
+            localStorage.setItem(`drawCount_${loginUser}`, drawCount);
+            updateCountTip();
+
+            // 匹配当前次数的奖品
+            const currentReward = window.lotteryRewards?.find(item => item[0] === loginUser && item[3] === drawCount);
+            let prizeName = '谢谢参与';
+            let prizeCode = '';
+            let isWin = false;
+            let targetIndex;
+
+            if (currentReward) {
+                prizeName = currentReward[1];
+                prizeCode = currentReward[2];
+                isWin = true;
+                // 容错：找不到映射则默认落到谢谢参与扇区1
+                targetIndex = prizeIndexMap[prizeName] ?? 1;
+            } else {
+                // 随机选中一个谢谢参与扇区
+                const thankIndexes = [1, 3, 5];
+                targetIndex = thankIndexes[Math.floor(Math.random() * 3)];
+            }
+
+            currentPrize = { name: prizeName, code: prizeCode, isWin: isWin };
+
+            // ========== 修复：精准角度计算 ==========
+            // 1. 计算目标扇区中心对应的最终角度（模360）
+            const targetCenterAngle = targetIndex * 60 + 30; // 扇区中心角度
+            const targetMod = (360 - targetCenterAngle) % 360; // 转盘最终模360的目标值
+
+            // 2. 计算当前累计角度的模360值
+            const currentMod = totalRotateAngle % 360;
+
+            // 3. 计算需要补充的角度差（保证正向旋转）
+            let delta = (targetMod - currentMod + 360) % 360;
+            // 避免转太少，至少转一整圈
+            if (delta < 30) delta += 360;
+
+            // 4. 额外多转5-8圈，增加视觉效果
+            const extraRounds = 5 + Math.floor(Math.random() * 4);
+            const finalAngle = totalRotateAngle + extraRounds * 360 + delta;
+
+            // 5. 执行旋转动画
+            wheel.style.transition = 'none';
+            wheel.offsetHeight; // 强制重绘，重置动画
+            wheel.style.transition = `transform ${2000 + Math.random() * 3000}ms cubic-bezier(0.15, 0.85, 0.2, 1)`;
+            wheel.style.transform = `rotate(${finalAngle}deg)`;
+
+            // 更新累计角度
+            totalRotateAngle = finalAngle;
+            // ======================================
+
+            // 动画结束后弹出结果
+            setTimeout(() => {
+                saveRecord(prizeName, prizeCode, isWin);
+                showResultModal(prizeName, isWin);
+
+                isRunning = false;
+                if (drawCount >= MAX_DRAW_COUNT) {
+                    startBtn.innerText = '已用完';
+                    recordBtnWrap.style.display = 'block';
+                } else {
+                    startBtn.disabled = false;
+                }
+            }, 2000 + 3000); // 时长和动画对应
+        }
+
+        // 显示结果弹窗
+        function showResultModal(prizeName, isWin) {
+            const resultTitle = document.getElementById('resultTitle');
+            const resultDesc = document.getElementById('resultDesc');
+            const codeBox = document.getElementById('codeBox');
+            const claimBtn = document.getElementById('claimBtn');
+
+            codeBox.style.display = 'none';
+            claimBtn.disabled = false;
+            claimBtn.innerText = isWin ? '奖品领取' : '我知道了';
+            claimBtn.onclick = claimPrize;
+
+            if (isWin) {
+                resultTitle.innerText = `🎉 恭喜获得 ${prizeName}`;
+                resultDesc.innerText = '点击下方按钮领取你的奖品';
+            } else {
+                resultTitle.innerText = '😢 谢谢参与';
+                resultDesc.innerText = '再接再厉，下次一定能中！';
+            }
+            document.getElementById('resultModal').style.display = 'flex';
+        }
+
+        // 领取奖品逻辑
+        function claimPrize() {
+            const claimBtn = document.getElementById('claimBtn');
+            const codeBox = document.getElementById('codeBox');
+            const codeValue = document.getElementById('codeValue');
+
+            if (!currentPrize.isWin) {
+                closeModal('resultModal');
+                return;
+            }
+
+            claimBtn.disabled = true;
+            claimBtn.innerText = '领取中...';
+            setTimeout(() => {
+                codeValue.innerText = currentPrize.code;
+                codeBox.style.display = 'block';
+                claimBtn.innerText = '✅ 已领取';
+                claimBtn.disabled = false;
+                claimBtn.onclick = () => closeModal('resultModal');
+            }, 1000);
+        }
+
+        // 保存抽奖记录到本地
+        function saveRecord(prizeName, prizeCode, isWin) {
+            const recordKey = `record_${loginUser}`;
+            let records = JSON.parse(localStorage.getItem(recordKey) || '[]');
+            records.unshift({
+                prize: prizeName,
+                code: prizeCode,
+                isWin: isWin,
+                time: new Date().toLocaleString('zh-CN')
+            });
+            localStorage.setItem(recordKey, JSON.stringify(records));
+        }
+
+        // 显示抽奖记录
+        function showRecordList() {
+            const recordKey = `record_${loginUser}`;
+            const records = JSON.parse(localStorage.getItem(recordKey) || '[]');
+            const listEl = document.getElementById('recordList');
+
+            if (records.length === 0) {
+                listEl.innerHTML = '<div class="empty-tip">暂无抽奖记录</div>';
+            } else {
+                listEl.innerHTML = records.map(item => `
+                    <li class="record-item">
+                        <div class="record-header">
+                            <span class="record-prize ${item.isWin ? 'record-win' : 'record-lose'}">
+                                ${item.isWin ? '🎁 ' : '💨 '}${item.prize}
+                            </span>
+                            <span class="record-time">${item.time}</span>
+                        </div>
+                        ${item.isWin ? `<div class="record-code">兑换码：${item.code}</div>` : ''}
+                    </li>
+                `).join('');
+            }
+            document.getElementById('recordModal').style.display = 'flex';
+        }
+
+        // 关闭弹窗
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // 更新次数提示
+        function updateCountTip() {
+            countTip.innerText = `已抽奖：${drawCount} 次 / 共 ${MAX_DRAW_COUNT} 次`;
+        }
+    </script>
+</body>
+</html>
